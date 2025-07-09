@@ -1,3 +1,4 @@
+using Godot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace NeuralNet
 {
-    internal class Neuron
+    public class Neuron
     {
         public delegate double ActivationFunction(double value);
         private ActivationFunction activationFunction;
@@ -18,6 +19,8 @@ namespace NeuralNet
             this.bias = bias;
             this.weights = weights;
             this.activationFunction = activationFunction;
+
+            GD.Print("neuron made, bias = " + bias);
         }
 
         public double CalcOutput(double[] inputs)

@@ -1,3 +1,7 @@
-[gd_scene format=3 uid="uid://c8p2k2t2pfkuq"]
+[gd_scene load_steps=2 format=3 uid="uid://c8p2k2t2pfkuq"]
+
+[ext_resource type="PackedScene" uid="uid://bmn88g4wbt8f8" path="res://scenes/NeuralNet.tscn" id="1_o5qli"]
 
 [node name="Main" type="Node2D"]
+
+[node name="NeuralNet" parent="." instance=ExtResource("1_o5qli")]
