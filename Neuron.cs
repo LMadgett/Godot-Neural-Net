@@ -20,7 +20,7 @@ namespace NeuralNet
             this.weights = weights;
             this.activationFunction = activationFunction;
 
-            GD.Print("neuron made, bias = " + bias);
+            //GD.Print("neuron made, bias = " + bias);
         }
 
         public double CalcOutput(double[] inputs)

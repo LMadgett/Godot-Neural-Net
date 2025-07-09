@@ -5,3 +5,5 @@
 [node name="Main" type="Node2D"]
 
 [node name="NeuralNet" parent="." instance=ExtResource("1_o5qli")]
+layerSizes = PackedInt32Array(2, 4, 1)
+inputs = PackedFloat64Array(15.3, 12.4)

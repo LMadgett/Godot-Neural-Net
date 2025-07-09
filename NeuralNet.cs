@@ -7,21 +7,54 @@ namespace NeuralNet
 	public partial class NeuralNet : Node
 	{
 		[Export]
-		public int numLayers = 3;
+		public int[] layerSizes;
+		[Export]
+		public double[] inputs;
 		public List<Layer> layers;
+
+		private Layer inputLayer;
+		private Layer outputLayer;
 
 		// Called when the node enters the scene tree for the first time.
 		public override void _Ready()
 		{
-			layers = new List<Layer>();
-			int prevLayerSize = 0;
-			for(int i = 0; i < numLayers; i++)
+			InitialiseLayers();
+			double[] outputs = GetOutputs(inputs);
+			for(int i = 0; i < outputs.Length; i++)
 			{
-				Layer layer = new Layer(3, prevLayerSize, MyActivationFunction);
-				layers.Add(layer);
-
-				prevLayerSize = layer.GetLayerSize();
+				GD.Print("outputs[" + i + "] = " + outputs[i]);
 			}
+		}
+
+		private void InitialiseLayers()
+		{
+			int numLayers = layerSizes.Length;
+            layers = new List<Layer>();
+            int prevLayerSize = 0;
+            for (int i = 0; i < numLayers; i++)
+            {
+                Layer layer = new Layer(layerSizes[i], prevLayerSize, MyActivationFunction);
+                layers.Add(layer);
+
+                prevLayerSize = layer.GetLayerSize();
+            }
+
+            inputLayer = layers[0];
+            outputLayer = layers[layers.Count - 1];
+        }
+
+		public double[] GetOutputs(double[] inputs)
+		{
+			inputLayer.SetOutputsFromInputs(inputs);
+			for (int i = 1; i < layers.Count; i++)
+			{
+                Layer prevLayer = layers[i - 1];
+                Layer currentLayer = layers[i];
+                currentLayer.CalcOutputs(prevLayer);
+            }
+
+			double[] outputs = outputLayer.GetLayerOutputs();
+			return outputs;
 		}
 
 		public double MyActivationFunction(double value)
