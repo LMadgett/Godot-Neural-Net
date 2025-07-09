@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bmn88g4wbt8f8"]
+
+[ext_resource type="Script" uid="uid://d2sxcm0cunk26" path="res://NeuralNet.cs" id="1_2mrjy"]
+
+[node name="NeuralNet" type="Node"]
+script = ExtResource("1_2mrjy")
