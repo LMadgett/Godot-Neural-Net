@@ -15,6 +15,8 @@ namespace NeuralNet
 		private Layer inputLayer;
 		private Layer outputLayer;
 
+		public delegate double ActivationFunction(double value);
+
 		// Called when the node enters the scene tree for the first time.
 		public override void _Ready()
 		{
@@ -33,7 +35,7 @@ namespace NeuralNet
             int prevLayerSize = 0;
             for (int i = 0; i < numLayers; i++)
             {
-                Layer layer = new Layer(layerSizes[i], prevLayerSize, MyActivationFunction);
+                Layer layer = new Layer(layerSizes[i], prevLayerSize, StepActivationFunction);
                 layers.Add(layer);
 
                 prevLayerSize = layer.GetLayerSize();
@@ -57,9 +59,11 @@ namespace NeuralNet
 			return outputs;
 		}
 
-		public double MyActivationFunction(double value)
+		public double StepActivationFunction(double value)
 		{
-			return value;
+			double output = 0;
+			if(value > 0) output = 1;
+			return output;
 		}
 
 		// Called every frame. 'delta' is the elapsed time since the previous frame.

@@ -8,32 +8,37 @@ namespace NeuralNet
 {
     public class Layer
     {
-        public Neuron[] neurons;
+        public double[] biases;
+        public double[,] weights;
         private double[] outputs;
         int prevLayerSize;
-        Neuron.ActivationFunction activationFunction;
+        int layerSize;
+        NeuralNet.ActivationFunction activationFunction;
         Random rand = new Random(27);
 
-        public Layer(int layerSize, int prevLayerSize, Neuron.ActivationFunction activation)
+        public Layer(int layerSize, int prevLayerSize, NeuralNet.ActivationFunction activation)
         {
-            neurons = new Neuron[layerSize];
+            this.layerSize = layerSize;
             this.prevLayerSize = prevLayerSize;
             this.activationFunction = activation;
+
             outputs = new double[layerSize];
+            biases = new double[layerSize];
+            weights = new double[layerSize, prevLayerSize];
+
             InitialiseNeurons();
         }
 
         private void InitialiseNeurons()
         {
-            for (int i = 0; i < neurons.Length; i++)
+            for (int i = 0; i < layerSize; i++)
             {
-                double[] weights = new double[prevLayerSize];
                 for(int j = 0; j < weights.Length; j++)
                 {
-                    weights[j] = rand.NextDouble() * 2 - 1;
+                    weights[i,j] = rand.NextDouble() * 2 - 1;
                 }
                 double bias = rand.NextDouble() * 2 - 1;
-                neurons[i] = new Neuron(bias, weights, activationFunction);
+                biases[i] = bias;
             }
         }
 
@@ -52,18 +57,29 @@ namespace NeuralNet
 
         public int GetLayerSize()
         {
-            return neurons.Length;
+            return layerSize;
         }
 
         public void CalcOutputs(Layer prevLayer)
         {
-            for(int i = 0; i < neurons.Length; i++)
+            for(int i = 0; i < layerSize; i++)
             {
-                Neuron neuron = neurons[i];
                 double[] inputs = prevLayer.outputs;
-                double output = neuron.CalcOutput(inputs);
+                double output = CalcNeuronOutput(i, inputs);
                 outputs[i] = output;
             }
+        }
+
+        public double CalcNeuronOutput(int neuronIdx, double[] inputs)
+        {
+            double outputValue = 0;
+            for (int i = 0; i < inputs.Length; i++)
+            {
+                outputValue += inputs[i] * weights[neuronIdx, i];
+            }
+            outputValue += biases[neuronIdx];
+            outputValue = activationFunction(outputValue);
+            return outputValue;
         }
     }
 }
