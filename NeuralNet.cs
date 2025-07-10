@@ -10,8 +10,10 @@ namespace NeuralNet
 		public int[] layerSizes;
 		[Export]
 		public double[] inputs;
-		public List<Layer> layers;
+		[Export]
+		public double[] expectedOutputs;
 
+		public List<Layer> layers;
 		private Layer inputLayer;
 		private Layer outputLayer;
 
@@ -35,7 +37,7 @@ namespace NeuralNet
             int prevLayerSize = 0;
             for (int i = 0; i < numLayers; i++)
             {
-                Layer layer = new Layer(layerSizes[i], prevLayerSize, PassThroughActivationFunction);
+                Layer layer = new Layer(layerSizes[i], prevLayerSize, SigmoidActivationFunction);
                 layers.Add(layer);
 
                 prevLayerSize = layer.GetLayerSize();
@@ -65,6 +67,11 @@ namespace NeuralNet
 			if(value > 0) output = 1;
 			return output;
 		}
+
+		public double SigmoidActivationFunction(double value)
+		{
+            return 1.0 / (1.0 + Math.Exp(-value));
+        }
 
         public double PassThroughActivationFunction(double value)
         {
