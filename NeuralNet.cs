@@ -35,7 +35,7 @@ namespace NeuralNet
             int prevLayerSize = 0;
             for (int i = 0; i < numLayers; i++)
             {
-                Layer layer = new Layer(layerSizes[i], prevLayerSize, StepActivationFunction);
+                Layer layer = new Layer(layerSizes[i], prevLayerSize, PassThroughActivationFunction);
                 layers.Add(layer);
 
                 prevLayerSize = layer.GetLayerSize();
@@ -66,8 +66,13 @@ namespace NeuralNet
 			return output;
 		}
 
-		// Called every frame. 'delta' is the elapsed time since the previous frame.
-		public override void _Process(double delta)
+        public double PassThroughActivationFunction(double value)
+        {
+            return value;
+        }
+
+        // Called every frame. 'delta' is the elapsed time since the previous frame.
+        public override void _Process(double delta)
 		{
 
 		}

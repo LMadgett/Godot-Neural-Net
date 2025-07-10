@@ -33,9 +33,9 @@ namespace NeuralNet
         {
             for (int i = 0; i < layerSize; i++)
             {
-                for(int j = 0; j < weights.Length; j++)
+                for(int j = 0; j < prevLayerSize; j++)
                 {
-                    weights[i,j] = rand.NextDouble() * 2 - 1;
+                    weights[i, j] = rand.NextDouble() * 2 - 1;
                 }
                 double bias = rand.NextDouble() * 2 - 1;
                 biases[i] = bias;
