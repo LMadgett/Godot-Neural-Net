@@ -12,7 +12,7 @@ namespace NeuralNet
         public double[,] weights;
         private double[] outputs;
         int prevLayerSize;
-        int layerSize;
+        public int layerSize;
         NeuralNet.ActivationFunction activationFunction;
         Random rand = new Random(27);
 
