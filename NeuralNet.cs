@@ -10,12 +10,8 @@ namespace NeuralNet
 		public int[] layerSizes;
 		[Export]
 		public double[] inputs;
-        [Export]
-        public double[] inputs2;
 		[Export]
 		public double[] expectedOutputs;
-        [Export]
-        public double[] expectedOutputs2;
         [Export]
         public int numPasses = 10000;
         [Export]
@@ -47,19 +43,6 @@ namespace NeuralNet
                     GD.Print("Error: " + error);
                 }
                 BackPropagate(expectedOutputs, learningRate);
-
-                double[] outputs2 = GetOutputs(inputs2);
-                if (pass % printInterval == 0)
-                {
-                    for (int i = 0; i < outputs2.Length; i++)
-                    {
-                        GD.Print("outputs2[" + i + "] = " + outputs2[i]);
-                    }
-                    double error2 = CalculateError(outputs2, expectedOutputs2);
-                    GD.Print("Error2: " + error2);
-                }
-                BackPropagate(expectedOutputs2, learningRate);
-            }
 		}
 
         public void BackPropagate(double[] expectedOutputs, double learningRate = 0.1)
