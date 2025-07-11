@@ -27,7 +27,7 @@ namespace NeuralNet
             //DisplayMNISTImage(0);
         }
 
-        private void DisplayMNISTImage(int idx)
+        public void DisplayMNISTImage(int idx)
         {
             Image img = ConvertMNISTToImage(trainingImages, idx);
             imageRect.Texture = ImageTexture.CreateFromImage(img);
@@ -42,10 +42,14 @@ namespace NeuralNet
         {
             int numEncode = 10;
             int numPasses = 100;
+            int totalPasses = 1000;
             double learningRate = 0.1;
             double[][] normImages = EncodeImages(numEncode);
             double[][] normLabels = OneHotEncodeLabels(numEncode);
-            neuralNet.Train(normImages, normLabels, numPasses, learningRate);
+            for (int i = 0; i < totalPasses; i += numPasses)
+            {
+                neuralNet.Train(normImages, normLabels, numPasses, learningRate);
+            }
         }
 
         private double[][] OneHotEncodeLabels(int numEncode)
