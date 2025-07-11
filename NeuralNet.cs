@@ -6,18 +6,13 @@ namespace NeuralNet
 {
 	public partial class NeuralNet : Node
 	{
-		[Export]
 		public int[] layerSizes;
-		[Export]
-		public double[] inputs;
-		[Export]
-		public double[] expectedOutputs;
         [Export]
-        public int numPasses = 10000;
+        public int numPasses = 100;
         [Export]
         public double learningRate = 0.1;
         [Export]
-        public int printInterval = 1000;
+        public int printInterval = 25;
 
 		public List<Layer> layers;
 		private Layer inputLayer;
@@ -28,25 +23,31 @@ namespace NeuralNet
 		// Called when the node enters the scene tree for the first time.
 		public override void _Ready()
 		{
-			InitialiseLayers();
-            Train();
+
 		}
 
-        public void Train()
+        public void Initialise(int[] layerSizes)
+        {
+            this.layerSizes = layerSizes;
+            InitialiseLayers();
+        }
+
+        public void Train(double[][] trainingInputs, double[][] expectedOutputs, int numPasses, double learningRate)
         {
             for (int pass = 0; pass < numPasses; pass++)
             {
-                double[] outputs = GetOutputs(inputs);
-                if (pass % printInterval == 0)
+                for (int i = 0; i < trainingInputs.GetLength(0); i++)
                 {
-                    for (int i = 0; i < outputs.Length; i++)
+                    double[] outputs = GetOutputs(trainingInputs[i]);
+
+                    BackPropagate(expectedOutputs[i], learningRate);
+
+                    if (pass % printInterval == 0 || pass == numPasses - 1)
                     {
-                        GD.Print("outputs[" + i + "] = " + outputs[i]);
+                        double error = CalculateError(outputs, expectedOutputs[i]);
+                        GD.Print($"Error for image {i} on pass {pass} = {error}");
                     }
-                    double error = CalculateError(outputs, expectedOutputs);
-                    GD.Print("Error: " + error);
                 }
-                BackPropagate(expectedOutputs, learningRate);
             }
         }
 

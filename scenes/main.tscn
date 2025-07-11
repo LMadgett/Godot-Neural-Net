@@ -3,14 +3,12 @@
 [ext_resource type="Script" uid="uid://bs2mb0l17mq0w" path="res://scenes/Main.cs" id="1_0wfyh"]
 [ext_resource type="PackedScene" uid="uid://bmn88g4wbt8f8" path="res://scenes/NeuralNet.tscn" id="1_o5qli"]
 
-[node name="Main" type="Node2D" node_paths=PackedStringArray("imageRect")]
+[node name="Main" type="Node2D" node_paths=PackedStringArray("neuralNet", "imageRect")]
 script = ExtResource("1_0wfyh")
+neuralNet = NodePath("NeuralNet")
 imageRect = NodePath("TextureRect")
 
 [node name="NeuralNet" parent="." instance=ExtResource("1_o5qli")]
-layerSizes = PackedInt32Array(2, 4, 2)
-inputs = PackedFloat64Array(0.5, 0.75)
-expectedOutputs = PackedFloat64Array(0.1, 0.1)
 
 [node name="TextureRect" type="TextureRect" parent="."]
 offset_right = 40.0
