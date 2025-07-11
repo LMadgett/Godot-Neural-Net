@@ -29,8 +29,12 @@ namespace NeuralNet
 		public override void _Ready()
 		{
 			InitialiseLayers();
+            Train();
+		}
 
-            for(int pass = 0; pass < numPasses; pass++)
+        public void Train()
+        {
+            for (int pass = 0; pass < numPasses; pass++)
             {
                 double[] outputs = GetOutputs(inputs);
                 if (pass % printInterval == 0)
@@ -43,7 +47,8 @@ namespace NeuralNet
                     GD.Print("Error: " + error);
                 }
                 BackPropagate(expectedOutputs, learningRate);
-		}
+            }
+        }
 
         public void BackPropagate(double[] expectedOutputs, double learningRate = 0.1)
         {
@@ -175,11 +180,5 @@ namespace NeuralNet
         {
             return value;
         }
-
-        // Called every frame. 'delta' is the elapsed time since the previous frame.
-        public override void _Process(double delta)
-		{
-
-		}
 	}
 }
