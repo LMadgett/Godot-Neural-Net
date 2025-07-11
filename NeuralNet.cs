@@ -10,8 +10,12 @@ namespace NeuralNet
 		public int[] layerSizes;
 		[Export]
 		public double[] inputs;
+        [Export]
+        public double[] inputs2;
 		[Export]
 		public double[] expectedOutputs;
+        [Export]
+        public double[] expectedOutputs2;
         [Export]
         public int numPasses = 10000;
         [Export]
@@ -43,6 +47,18 @@ namespace NeuralNet
                     GD.Print("Error: " + error);
                 }
                 BackPropagate(expectedOutputs, learningRate);
+
+                double[] outputs2 = GetOutputs(inputs2);
+                if (pass % printInterval == 0)
+                {
+                    for (int i = 0; i < outputs2.Length; i++)
+                    {
+                        GD.Print("outputs2[" + i + "] = " + outputs2[i]);
+                    }
+                    double error2 = CalculateError(outputs2, expectedOutputs2);
+                    GD.Print("Error2: " + error2);
+                }
+                BackPropagate(expectedOutputs2, learningRate);
             }
 		}
 
@@ -63,7 +79,7 @@ namespace NeuralNet
                 double output = outputLayer.GetLayerOutputs()[i];
                 double error = expectedOutputs[i] - output;
                 // Sigmoid derivative: output * (1 - output)
-                outputDeltas[i] = error * output * (1 - output);
+                outputDeltas[i] = error * SigmoidDerivative(output);
             }
             deltas.Insert(0, outputDeltas);
 
@@ -82,7 +98,7 @@ namespace NeuralNet
                     {
                         sum += nextLayer.weights[j, i] * deltas[0][j];
                     }
-                    layerDeltas[i] = sum * output * (1 - output);
+                    layerDeltas[i] = sum * SigmoidDerivative(output);
                 }
                 deltas.Insert(0, layerDeltas);
             }
@@ -165,6 +181,11 @@ namespace NeuralNet
 		public double SigmoidActivationFunction(double value)
 		{
             return 1.0 / (1.0 + Math.Exp(-value));
+        }
+
+        public double SigmoidDerivative(double value)
+        {
+            return value * (1 - value);
         }
 
         public double PassThroughActivationFunction(double value)
