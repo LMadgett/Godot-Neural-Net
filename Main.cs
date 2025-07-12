@@ -1,5 +1,7 @@
 using Godot;
 using System;
+using System.Collections;
+using System.Threading;
 
 namespace NeuralNet
 {
@@ -8,17 +10,35 @@ namespace NeuralNet
         [Export]
         NeuralNet neuralNet;
         [Export]
-        TextureRect imageRect;
+        TextureRect trainRect;
+        [Export]
+        TextureRect maxErrorRect;
+        [Export]
+        Label progressLabel;
 
         byte[,,] trainingImages;
         byte[] trainingLabels;
+
+        double[][] normImages;
+        double[][] normLabels;
+
+        private bool trained = false;
+        private bool training = false;
+        private Thread trainThread;
+
+        int currentIteration = 0;
+        int maxIterations = 10;
+        int taskIterSize = 100;
+        int numImagesToEncode = 100;
+        double learningRate = 0.1;
+
+        private Hashtable mnistTextures = new Hashtable();
 
         // Called when the node enters the scene tree for the first time.
         public override void _Ready()
         {
             ReadData();
             InitialiseNeuralNet();
-            TrainNeuralNet();
         }
 
         private void ReadData()
@@ -27,28 +47,80 @@ namespace NeuralNet
             //DisplayMNISTImage(0);
         }
 
-        public void DisplayMNISTImage(int idx)
+        public void DisplayMNISTImage(int idx, TextureRect rect)
         {
-            Image img = ConvertMNISTToImage(trainingImages, idx);
-            imageRect.Texture = ImageTexture.CreateFromImage(img);
+            Texture2D tex = null;
+            if(mnistTextures.ContainsKey(idx))
+            {
+                tex = (Texture2D)mnistTextures[idx];
+            }
+            else
+            {
+                Image img = ConvertMNISTToImage(trainingImages, idx);
+                tex = ImageTexture.CreateFromImage(img);
+                mnistTextures[idx] = tex;
+            }
+            rect.Texture = tex;
         }
 
         private void InitialiseNeuralNet()
         {
-            neuralNet.Initialise(new int[] { 784, 128, 10 });
+            neuralNet.Initialise(new int[] { 784, 128, 64, 10 });
         }
 
         private void TrainNeuralNet()
         {
-            int numEncode = 10;
-            int numPasses = 100;
-            int totalPasses = 1000;
-            double learningRate = 0.1;
-            double[][] normImages = EncodeImages(numEncode);
-            double[][] normLabels = OneHotEncodeLabels(numEncode);
-            for (int i = 0; i < totalPasses; i += numPasses)
+            training = true;
+            if(normImages == null)
             {
-                neuralNet.Train(normImages, normLabels, numPasses, learningRate);
+                normImages = EncodeImages(numImagesToEncode);
+            }
+            if(normLabels == null)
+            {
+                normLabels = OneHotEncodeLabels(numImagesToEncode);
+            }
+
+            //no thread training?
+            if (trainThread == null && currentIteration < maxIterations)
+            {
+                trainThread = new Thread(new ParameterizedThreadStart(neuralNet.Train));
+                Object trainingParams = new Object[] { normImages, normLabels, taskIterSize, learningRate };
+                trainThread.Start(trainingParams);
+                currentIteration++;
+
+                GD.Print($"Training iteration {currentIteration}/{maxIterations}.");
+            }
+            else
+            {
+                if (trainThread != null)
+                {
+                    if (trainThread.ThreadState == ThreadState.Stopped || trainThread.ThreadState == ThreadState.Unstarted)
+                    {
+                        training = false;
+                        trainThread = null;
+
+                        if (currentIteration >= maxIterations)
+                        {
+                            trained = true;
+
+                            GD.Print("Training completed.");
+                            progressLabel.Text = progressLabel.Text + "\n\n Training completed.";
+                        }
+                    }
+                    else
+                    {
+                        int currentThreadIteration = neuralNet.currentIteration;
+                        int currentThreadInputIndex = neuralNet.currentInputIndex;
+                        double currentThreadError = neuralNet.currentError;
+                        double currentThreadMaxError = neuralNet.currentMaxError;
+                        int currentThreadMaxErrorIndex = neuralNet.currentMaxErrorIndex;
+
+                        progressLabel.Text = $"NumImagesToTrain: {numImagesToEncode}\nTotalIterations: {maxIterations * taskIterSize}\n\nTraining: Iteration {currentIteration}/{maxIterations}\nThreadIteration: {currentThreadIteration + 1}/{taskIterSize}\nSample: {currentThreadInputIndex + 1}/{normImages.Length}\nAvgError: {currentThreadError:F10}\nMaxError: {currentThreadMaxError:F10}";
+
+                        DisplayMNISTImage(currentThreadInputIndex, trainRect);
+                        DisplayMNISTImage(currentThreadMaxErrorIndex, maxErrorRect);
+                    }
+                }
             }
         }
 
@@ -85,7 +157,10 @@ namespace NeuralNet
         // Called every frame. 'delta' is the elapsed time since the previous frame.
         public override void _Process(double delta)
         {
-
+            if(!trained)
+            {
+                TrainNeuralNet();
+            }
         }
 
         private void ReadMNISTTrainingData()

@@ -7,18 +7,18 @@ namespace NeuralNet
 	public partial class NeuralNet : Node
 	{
 		public int[] layerSizes;
-        [Export]
-        public int numPasses = 100;
-        [Export]
-        public double learningRate = 0.1;
-        [Export]
-        public int printInterval = 25;
-
 		public List<Layer> layers;
 		private Layer inputLayer;
 		private Layer outputLayer;
 
-		public delegate double ActivationFunction(double value);
+        public bool threadCompleted = false;
+        public int currentIteration = 0;
+        public int currentInputIndex = 0;
+        public double currentError = 1.0;
+        public double currentMaxError = 0.0;
+        public int currentMaxErrorIndex = 0;
+
+        public delegate double ActivationFunction(double value);
 
 		// Called when the node enters the scene tree for the first time.
 		public override void _Ready()
@@ -32,22 +32,45 @@ namespace NeuralNet
             InitialiseLayers();
         }
 
+        public void Train(Object trainingParams)
+        {
+            threadCompleted = false;
+
+            Object[] paramsArray = (Object[])trainingParams;
+            double[][] trainingInputs = (double[][])paramsArray[0];
+            double[][] expectedOutputs = (double[][])paramsArray[1];
+            int numPasses = (int)paramsArray[2];
+            double learningRate = (double)paramsArray[3];
+
+            Train(trainingInputs, expectedOutputs, numPasses, learningRate);
+
+            threadCompleted = true;
+        }
+
         public void Train(double[][] trainingInputs, double[][] expectedOutputs, int numPasses, double learningRate)
         {
             for (int pass = 0; pass < numPasses; pass++)
             {
+                double totalPassError = 0.0;
+                currentIteration = pass;
+                currentMaxError = 0.0;
+
                 for (int i = 0; i < trainingInputs.GetLength(0); i++)
                 {
+                    currentInputIndex = i;
                     double[] outputs = GetOutputs(trainingInputs[i]);
 
                     BackPropagate(expectedOutputs[i], learningRate);
+                    double error = CalculateError(outputs, expectedOutputs[i]);
 
-                    if (pass % printInterval == 0 || pass == numPasses - 1)
+                    totalPassError += error;
+                    if(currentMaxError < error)
                     {
-                        double error = CalculateError(outputs, expectedOutputs[i]);
-                        GD.Print($"Error for image {i} on pass {pass} = {error}");
+                        currentMaxError = error;
+                        currentMaxErrorIndex = i;
                     }
                 }
+                currentError = totalPassError / trainingInputs.GetLength(0);
             }
         }
 
