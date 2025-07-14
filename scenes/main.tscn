@@ -6,7 +6,7 @@
 [sub_resource type="LabelSettings" id="LabelSettings_0wfyh"]
 font_size = 20
 
-[node name="Main" type="Node2D" node_paths=PackedStringArray("neuralNet", "trainRect", "maxErrorRect", "progressLabel", "trainButton", "saveWeightsButton", "readWeightsButton", "fileDialog", "fileLineEdit")]
+[node name="Main" type="Node2D" node_paths=PackedStringArray("neuralNet", "trainRect", "maxErrorRect", "progressLabel", "trainButton", "saveWeightsButton", "readWeightsButton", "fileDialog", "fileLineEdit", "testRect", "TestLineEdit", "testLabel", "testButton")]
 script = ExtResource("1_0wfyh")
 neuralNet = NodePath("NeuralNet")
 trainRect = NodePath("trainRect")
@@ -17,6 +17,10 @@ saveWeightsButton = NodePath("SaveButton")
 readWeightsButton = NodePath("LoadButton")
 fileDialog = NodePath("FileDialog")
 fileLineEdit = NodePath("FileLineEdit")
+testRect = NodePath("testRect")
+TestLineEdit = NodePath("TestLineEdit")
+testLabel = NodePath("TestLabel")
+testButton = NodePath("TestButton")
 
 [node name="NeuralNet" parent="." instance=ExtResource("1_o5qli")]
 
@@ -26,8 +30,14 @@ offset_bottom = 40.0
 scale = Vector2(4, 4)
 
 [node name="maxErrorRect" type="TextureRect" parent="."]
-offset_left = 239.0
-offset_right = 279.0
+offset_left = 240.0
+offset_right = 280.0
+offset_bottom = 40.0
+scale = Vector2(4, 4)
+
+[node name="testRect" type="TextureRect" parent="."]
+offset_left = 480.0
+offset_right = 520.0
 offset_bottom = 40.0
 scale = Vector2(4, 4)
 
@@ -78,9 +88,30 @@ ok_button_text = "Open"
 file_mode = 0
 access = 2
 
+[node name="TestLineEdit" type="LineEdit" parent="."]
+offset_left = 480.0
+offset_top = 185.0
+offset_right = 548.563
+offset_bottom = 216.0
+
+[node name="TestButton" type="Button" parent="."]
+offset_left = 564.0
+offset_top = 185.0
+offset_right = 605.0
+offset_bottom = 216.0
+text = "Test"
+
+[node name="TestLabel" type="Label" parent="."]
+offset_left = 480.0
+offset_top = 229.0
+offset_right = 520.0
+offset_bottom = 252.0
+
 [connection signal="pressed" from="LoadButton" to="." method="OnLoadButtonPressed"]
 [connection signal="pressed" from="SaveButton" to="." method="OnSaveButtonPressed"]
 [connection signal="pressed" from="TrainButton" to="." method="OnTrainButtonPressed"]
 [connection signal="text_submitted" from="FileLineEdit" to="." method="OnFileLineEditTextSubmitted"]
 [connection signal="pressed" from="FileLineEdit/PickButton" to="." method="OnPickButtonPressed"]
 [connection signal="file_selected" from="FileDialog" to="." method="OnFileDialogFileSelected"]
+[connection signal="text_submitted" from="TestLineEdit" to="." method="OnTestLineEditSubmitted"]
+[connection signal="pressed" from="TestButton" to="." method="OnTestButtonPressed"]

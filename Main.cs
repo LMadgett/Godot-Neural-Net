@@ -26,12 +26,26 @@ namespace NeuralNet
         FileDialog fileDialog;
         [Export]
         LineEdit fileLineEdit;
+        [Export]
+        TextureRect testRect;
+        [Export]
+        LineEdit TestLineEdit;
+        [Export]
+        Label testLabel;
+        [Export]
+        Button testButton;
 
         byte[,,] trainingImages;
         byte[] trainingLabels;
 
-        double[][] normImages;
-        double[][] normLabels;
+        byte[,,] testImages;
+        byte[] testLabels;
+
+        double[][] normTrainingImages;
+        double[][] normTrainingLabels;
+
+        double[][] normTestImages;
+        double[][] normTestLabels;
 
         private bool trained = false;
         private bool training = false;
@@ -43,7 +57,8 @@ namespace NeuralNet
         int currentIteration = 0;
         int maxIterations = 10;
         int taskIterSize = 100;
-        int numImagesToEncode = 10;
+        int numTrainImagesToEncode = 100;
+        int numTestImagesToEncode = 10000;
         double learningRate = 0.1;
 
         private string filePath;
@@ -52,6 +67,8 @@ namespace NeuralNet
         private Hashtable mnistTextures = new Hashtable();
 
         private long trainingStartTime = 0;
+
+        int testIndex = -1;
 
         // Called when the node enters the scene tree for the first time.
         public override void _Ready()
@@ -88,21 +105,34 @@ namespace NeuralNet
         private void ReadData()
         {
             ReadMNISTTrainingData();
-            //DisplayMNISTImage(0);
+            ReadMNISTTestData();
+            normTrainingImages = EncodeImages(numTrainImagesToEncode, false);
+            normTrainingLabels = OneHotEncodeLabels(numTrainImagesToEncode, false);
+            normTestImages = EncodeImages(numTestImagesToEncode, true);
+            normTestLabels = OneHotEncodeLabels(numTestImagesToEncode, true);
         }
 
-        public void DisplayMNISTImage(int idx, TextureRect rect)
+        public void DisplayMNISTImage(int idx, TextureRect rect, bool testOrTrain)
         {
-            Texture2D tex = null;
-            if(mnistTextures.ContainsKey(idx))
+            byte[,,] images = null;
+            if(testOrTrain)
             {
-                tex = (Texture2D)mnistTextures[idx];
+                images = testImages;
             }
             else
             {
-                Image img = ConvertMNISTToImage(trainingImages, idx);
+                images = trainingImages;
+            }
+            Texture2D tex = null;
+            if(mnistTextures.ContainsKey(testOrTrain.ToString() + "-" + idx))
+            {
+                tex = (Texture2D)mnistTextures[testOrTrain.ToString() + "-" + idx];
+            }
+            else
+            {
+                Image img = ConvertMNISTToImage(images, idx);
                 tex = ImageTexture.CreateFromImage(img);
-                mnistTextures[idx] = tex;
+                mnistTextures[testOrTrain.ToString() + "-" + idx] = tex;
             }
             rect.Texture = tex;
         }
@@ -115,20 +145,13 @@ namespace NeuralNet
         private void TrainNeuralNet()
         {
             training = true;
-            if(normImages == null)
-            {
-                normImages = EncodeImages(numImagesToEncode);
-            }
-            if(normLabels == null)
-            {
-                normLabels = OneHotEncodeLabels(numImagesToEncode);
-            }
+
 
             //no thread training?
             if (trainThread == null && currentIteration < maxIterations)
             {
                 trainThread = new Thread(new ParameterizedThreadStart(neuralNet.Train));
-                Object trainingParams = new Object[] { normImages, normLabels, taskIterSize, learningRate };
+                Object trainingParams = new Object[] { normTrainingImages, normTrainingLabels, taskIterSize, learningRate };
                 trainThread.Start(trainingParams);
                 currentIteration++;
 
@@ -149,6 +172,11 @@ namespace NeuralNet
 
                             GD.Print("Training completed.");
                             progressLabel.Text = progressLabel.Text + "\n\n Training completed.";
+                            saveWeightsButton.Disabled = false;
+                            readWeightsButton.Disabled = false;
+                            testButton.Disabled = false;
+                            trainButton.Text = "Start Training";
+                            doTraining = false;
                         }
                     }
                     else
@@ -168,28 +196,31 @@ namespace NeuralNet
                         double timeLeft = (totalIterations - currentIter) * timePerIteration / 1000.0;
                         double percentageComplete = ((double)currentIter / (double)totalIterations) * 100.0;
 
-                        progressLabel.Text = $"NumImagesToTrain: {numImagesToEncode}\nTotalIterations: {maxIterations * taskIterSize}\n\nTraining: Iteration {currentIteration}/{maxIterations}\nThreadIteration: {currentThreadIteration + 1}/{taskIterSize}\nSample: {currentThreadInputIndex + 1}/{normImages.Length}\nAvgError: {currentThreadError:F10}\nMaxError: {currentThreadMaxError:F10}\nPercentComplete: {percentageComplete:F3}\nEstTotalTime (s): {estimatedTotalTime:F3}\nTimeLeft (s): {timeLeft:F3}";
+                        progressLabel.Text = $"NumImagesToTrain: {numTrainImagesToEncode}\nTotalIterations: {maxIterations * taskIterSize}\n\nTraining: Iteration {currentIteration}/{maxIterations}\nThreadIteration: {currentThreadIteration + 1}/{taskIterSize}\nSample: {currentThreadInputIndex + 1}/{normTrainingImages.Length}\nAvgError: {currentThreadError:F10}\nMaxError: {currentThreadMaxError:F10}\nPercentComplete: {percentageComplete:F1}\nEstTotalTime (s): {estimatedTotalTime:F3}\nTimeLeft (s): {timeLeft:F3}";
 
-                        DisplayMNISTImage(currentThreadInputIndex, trainRect);
-                        DisplayMNISTImage(currentThreadMaxErrorIndex, maxErrorRect);
+                        DisplayMNISTImage(currentThreadInputIndex, trainRect, false);
+                        DisplayMNISTImage(currentThreadMaxErrorIndex, maxErrorRect, false);
                     }
                 }
             }
         }
 
-        private double[][] OneHotEncodeLabels(int numEncode)
+        private double[][] OneHotEncodeLabels(int numEncode, bool testOrTrain)
         {
             double[][] normLabels = new double[numEncode][];
             for (int i = 0; i < numEncode; i++)
             {
                 double[] oneHotVector = new double[10];
-                oneHotVector[trainingLabels[i]] = 1.0; // One-hot encoding
+                if (testOrTrain)
+                    oneHotVector[testLabels[i]] = 1.0;
+                else
+                    oneHotVector[trainingLabels[i]] = 1.0;
                 normLabels[i] = oneHotVector;
             }
             return normLabels;
         }
 
-        private double[][] EncodeImages(int numEncode)
+        private double[][] EncodeImages(int numEncode, bool testOrTrain)
         {
             double[][] normImages = new double[numEncode][];
             for (int i = 0; i < numEncode; i++)
@@ -199,7 +230,10 @@ namespace NeuralNet
                 {
                     for (int x = 0; x < 28; x++)
                     {
-                        imageVector[y * 28 + x] = trainingImages[i, y, x] / 255.0;
+                        if(testOrTrain)
+                            imageVector[y * 28 + x] = testImages[i, y, x] / 255.0;
+                        else
+                            imageVector[y * 28 + x] = trainingImages[i, y, x] / 255.0;
                     }
                 }
                 normImages[i] = imageVector;
@@ -219,6 +253,12 @@ namespace NeuralNet
             {
                 GD.Print($"TrainingLabel {i} = {trainingLabels[i]}");
             }
+        }
+
+        private void ReadMNISTTestData()
+        {
+            testImages = (byte[,,])IDXReader.ReadIDX("MNIST/t10k-images.idx3-ubyte");
+            testLabels = (byte[])IDXReader.ReadIDX("MNIST/t10k-labels.idx1-ubyte");
         }
 
         private Image ConvertMNISTToImage(byte[,,] imageData, int idx)
@@ -257,6 +297,7 @@ namespace NeuralNet
                 trainButton.Text = "Start Training";
                 readWeightsButton.Disabled = false;
                 saveWeightsButton.Disabled = false;
+                testButton.Disabled = false;
             }
             else
             {
@@ -264,6 +305,7 @@ namespace NeuralNet
                 trainButton.Text = "Stop Training";
                 readWeightsButton.Disabled = true;
                 saveWeightsButton.Disabled = true;
+                testButton.Disabled = true;
                 trainingStartTime = GetCurrentTimeMillis();
             }
         }
@@ -294,6 +336,31 @@ namespace NeuralNet
         {
             filePath = Path.GetDirectoryName(fileLine);
             fileName = Path.GetFileName(fileLine);
+        }
+
+        private void OnTestLineEditSubmitted(string testLine)
+        {
+            testIndex = int.Parse(testLine);
+            DisplayMNISTImage(testIndex, testRect, true);
+        }
+
+        private void OnTestButtonPressed()
+        {
+            if(testIndex != -1)
+            {
+                double[] outputs = neuralNet.GetOutputs(normTestImages[testIndex]);
+                int predictedNum = -1;
+                double maxProb = 0;
+                for(int i = 0; i < outputs.Length; i++)
+                {
+                    if (outputs[i] > maxProb)
+                    {
+                        maxProb = outputs[i];
+                        predictedNum = i;
+                    }
+                }
+                testLabel.Text = $"Predicted: {predictedNum} (Prob: {maxProb:F4})\nActual: {testLabels[testIndex]}";
+            }
         }
     }
 }
