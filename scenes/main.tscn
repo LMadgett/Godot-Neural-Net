@@ -4,14 +4,19 @@
 [ext_resource type="PackedScene" uid="uid://bmn88g4wbt8f8" path="res://scenes/NeuralNet.tscn" id="1_o5qli"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_0wfyh"]
-font_size = 24
+font_size = 20
 
-[node name="Main" type="Node2D" node_paths=PackedStringArray("neuralNet", "trainRect", "maxErrorRect", "progressLabel")]
+[node name="Main" type="Node2D" node_paths=PackedStringArray("neuralNet", "trainRect", "maxErrorRect", "progressLabel", "trainButton", "saveWeightsButton", "readWeightsButton", "fileDialog", "fileLineEdit")]
 script = ExtResource("1_0wfyh")
 neuralNet = NodePath("NeuralNet")
 trainRect = NodePath("trainRect")
 maxErrorRect = NodePath("maxErrorRect")
 progressLabel = NodePath("Label")
+trainButton = NodePath("TrainButton")
+saveWeightsButton = NodePath("SaveButton")
+readWeightsButton = NodePath("LoadButton")
+fileDialog = NodePath("FileDialog")
+fileLineEdit = NodePath("FileLineEdit")
 
 [node name="NeuralNet" parent="." instance=ExtResource("1_o5qli")]
 
@@ -28,7 +33,54 @@ scale = Vector2(4, 4)
 
 [node name="Label" type="Label" parent="."]
 offset_left = 23.0
-offset_top = 221.0
+offset_top = 189.0
 offset_right = 63.0
-offset_bottom = 244.0
+offset_bottom = 223.0
 label_settings = SubResource("LabelSettings_0wfyh")
+
+[node name="LoadButton" type="Button" parent="."]
+offset_left = 1000.0
+offset_top = 72.0
+offset_right = 1046.0
+offset_bottom = 103.0
+text = "Load"
+
+[node name="SaveButton" type="Button" parent="."]
+offset_left = 1000.0
+offset_top = 112.0
+offset_right = 1044.0
+offset_bottom = 143.0
+text = "Save"
+
+[node name="TrainButton" type="Button" parent="."]
+offset_left = 1000.0
+offset_top = 152.0
+offset_right = 1048.0
+offset_bottom = 183.0
+text = "Train"
+
+[node name="FileLineEdit" type="LineEdit" parent="."]
+offset_left = 746.0
+offset_top = 23.0
+offset_right = 1046.0
+offset_bottom = 54.0
+
+[node name="PickButton" type="Button" parent="FileLineEdit"]
+layout_mode = 0
+offset_left = -46.0
+offset_right = -6.0
+offset_bottom = 31.0
+text = "Pick"
+
+[node name="FileDialog" type="FileDialog" parent="."]
+title = "Open a File"
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+
+[connection signal="pressed" from="LoadButton" to="." method="OnLoadButtonPressed"]
+[connection signal="pressed" from="SaveButton" to="." method="OnSaveButtonPressed"]
+[connection signal="pressed" from="TrainButton" to="." method="OnTrainButtonPressed"]
+[connection signal="text_submitted" from="FileLineEdit" to="." method="OnFileLineEditTextSubmitted"]
+[connection signal="pressed" from="FileLineEdit/PickButton" to="." method="OnPickButtonPressed"]
+[connection signal="file_selected" from="FileDialog" to="." method="OnFileDialogFileSelected"]

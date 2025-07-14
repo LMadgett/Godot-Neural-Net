@@ -16,6 +16,16 @@ namespace NeuralNet
         TextureRect maxErrorRect;
         [Export]
         Label progressLabel;
+        [Export]
+        Button trainButton;
+        [Export]
+        Button saveWeightsButton;
+        [Export]
+        Button readWeightsButton;
+        [Export]
+        FileDialog fileDialog;
+        [Export]
+        LineEdit fileLineEdit;
 
         byte[,,] trainingImages;
         byte[] trainingLabels;
@@ -25,6 +35,7 @@ namespace NeuralNet
 
         private bool trained = false;
         private bool training = false;
+        private bool doTraining = false;
         private Thread trainThread;
 
         private bool weightsSaved = false;
@@ -35,41 +46,42 @@ namespace NeuralNet
         int numImagesToEncode = 10;
         double learningRate = 0.1;
 
-        [Export]
-        string writeFilePath = "E:\\Coding\\Godot\\neuralnet";
-        [Export]
-        string writeFileName = "weights.txt";
-        [Export]
-        string readFilePath = "E:\\Coding\\Godot\\neuralnet";
-        [Export]
-        string readFileName = "weights.txt";
+        private string filePath;
+        private string fileName;
 
         private Hashtable mnistTextures = new Hashtable();
+
+        private long trainingStartTime = 0;
 
         // Called when the node enters the scene tree for the first time.
         public override void _Ready()
         {
             ReadData();
             InitialiseNeuralNet();
-            ReadWeights();
+        }
+
+        private long GetCurrentTimeMillis()
+        {
+            DateTimeOffset date = DateTimeOffset.UtcNow;
+            return date.ToUnixTimeMilliseconds();
         }
 
         public void ReadWeights()
         {
-            if (readFileName != null && readFileName.Length > 0)
+            if (fileName != null && fileName.Length > 0)
             {
-                neuralNet.ReadWeights(readFilePath, readFileName);
-                GD.Print("Weights read from " + readFileName);
+                neuralNet.ReadWeights(filePath, fileName);
+                GD.Print("Weights read from " + fileName);
             }
         }
 
         public void SaveWeights()
         {
-            if (writeFileName != null && writeFileName.Length > 0)
+            if (fileName != null && fileName.Length > 0)
             {
-                neuralNet.SaveWeights(writeFilePath, writeFileName);
+                neuralNet.SaveWeights(filePath, fileName);
                 weightsSaved = true;
-                GD.Print("Weights saved to " + writeFileName);
+                GD.Print("Weights saved to " + fileName);
             }
         }
 
@@ -146,8 +158,17 @@ namespace NeuralNet
                         double currentThreadError = neuralNet.currentError;
                         double currentThreadMaxError = neuralNet.currentMaxError;
                         int currentThreadMaxErrorIndex = neuralNet.currentMaxErrorIndex;
+                        
+                        int totalIterations = maxIterations * taskIterSize;
+                        int currentIter = ((currentIteration - 1) * taskIterSize) + currentThreadIteration;
 
-                        progressLabel.Text = $"NumImagesToTrain: {numImagesToEncode}\nTotalIterations: {maxIterations * taskIterSize}\n\nTraining: Iteration {currentIteration}/{maxIterations}\nThreadIteration: {currentThreadIteration + 1}/{taskIterSize}\nSample: {currentThreadInputIndex + 1}/{normImages.Length}\nAvgError: {currentThreadError:F10}\nMaxError: {currentThreadMaxError:F10}";
+                        long timeSoFar = GetCurrentTimeMillis() - trainingStartTime;
+                        double timePerIteration = ((double)timeSoFar / (double)currentIter);
+                        double estimatedTotalTime = (timePerIteration * totalIterations) / 1000;
+                        double timeLeft = (totalIterations - currentIter) * timePerIteration / 1000.0;
+                        double percentageComplete = ((double)currentIter / (double)totalIterations) * 100.0;
+
+                        progressLabel.Text = $"NumImagesToTrain: {numImagesToEncode}\nTotalIterations: {maxIterations * taskIterSize}\n\nTraining: Iteration {currentIteration}/{maxIterations}\nThreadIteration: {currentThreadIteration + 1}/{taskIterSize}\nSample: {currentThreadInputIndex + 1}/{normImages.Length}\nAvgError: {currentThreadError:F10}\nMaxError: {currentThreadMaxError:F10}\nPercentComplete: {percentageComplete:F3}\nEstTotalTime (s): {estimatedTotalTime:F3}\nTimeLeft (s): {timeLeft:F3}";
 
                         DisplayMNISTImage(currentThreadInputIndex, trainRect);
                         DisplayMNISTImage(currentThreadMaxErrorIndex, maxErrorRect);
@@ -222,15 +243,57 @@ namespace NeuralNet
         // Called every frame. 'delta' is the elapsed time since the previous frame.
         public override void _Process(double delta)
         {
-            if (!trained)
+            if (!trained && doTraining)
             {
                 TrainNeuralNet();
             }
+        }
 
-            if(trained && !weightsSaved)
+        private void OnTrainButtonPressed()
+        {
+            if(doTraining)
             {
-                SaveWeights();
+                doTraining = false;
+                trainButton.Text = "Start Training";
+                readWeightsButton.Disabled = false;
+                saveWeightsButton.Disabled = false;
             }
+            else
+            {
+                doTraining = true;
+                trainButton.Text = "Stop Training";
+                readWeightsButton.Disabled = true;
+                saveWeightsButton.Disabled = true;
+                trainingStartTime = GetCurrentTimeMillis();
+            }
+        }
+
+        private void OnLoadButtonPressed()
+        {
+            ReadWeights();
+        }
+
+        private void OnSaveButtonPressed()
+        {
+            SaveWeights();
+        }
+
+        private void OnPickButtonPressed()
+        {
+            fileDialog.Visible = true;
+        }
+
+        private void OnFileDialogFileSelected(string filePicked)
+        {
+            fileLineEdit.Text = filePicked;
+            filePath = Path.GetDirectoryName(filePicked);
+            fileName = Path.GetFileName(filePicked);
+        }
+
+        private void OnFileLineEditTextSubmitted(string fileLine)
+        {
+            filePath = Path.GetDirectoryName(fileLine);
+            fileName = Path.GetFileName(fileLine);
         }
     }
 }
