@@ -6,7 +6,7 @@
 [sub_resource type="LabelSettings" id="LabelSettings_0wfyh"]
 font_size = 20
 
-[node name="Main" type="Node2D" node_paths=PackedStringArray("neuralNet", "trainRect", "maxErrorRect", "progressLabel", "trainButton", "saveWeightsButton", "readWeightsButton", "fileDialog", "fileLineEdit", "testRect", "TestLineEdit", "testLabel", "testButton")]
+[node name="Main" type="Node2D" node_paths=PackedStringArray("neuralNet", "trainRect", "maxErrorRect", "progressLabel", "trainButton", "saveWeightsButton", "readWeightsButton", "fileDialog", "fileLineEdit", "testRect", "TestLineEdit", "testLabel", "testButton", "testAllButton", "numCorrectLabel")]
 script = ExtResource("1_0wfyh")
 neuralNet = NodePath("NeuralNet")
 trainRect = NodePath("trainRect")
@@ -21,6 +21,8 @@ testRect = NodePath("testRect")
 TestLineEdit = NodePath("TestLineEdit")
 testLabel = NodePath("TestLabel")
 testButton = NodePath("TestButton")
+testAllButton = NodePath("TestAllButton")
+numCorrectLabel = NodePath("NumCorrectLabel")
 
 [node name="NeuralNet" parent="." instance=ExtResource("1_o5qli")]
 
@@ -103,9 +105,23 @@ text = "Test"
 
 [node name="TestLabel" type="Label" parent="."]
 offset_left = 480.0
-offset_top = 229.0
+offset_top = 230.0
 offset_right = 520.0
-offset_bottom = 252.0
+offset_bottom = 253.0
+
+[node name="TestAllButton" type="Button" parent="."]
+offset_left = 1000.0
+offset_top = 192.0
+offset_right = 1065.0
+offset_bottom = 223.0
+text = "Test All
+"
+
+[node name="NumCorrectLabel" type="Label" parent="."]
+offset_left = 758.0
+offset_top = 230.0
+offset_right = 798.0
+offset_bottom = 253.0
 
 [connection signal="pressed" from="LoadButton" to="." method="OnLoadButtonPressed"]
 [connection signal="pressed" from="SaveButton" to="." method="OnSaveButtonPressed"]
@@ -115,3 +131,4 @@ offset_bottom = 252.0
 [connection signal="file_selected" from="FileDialog" to="." method="OnFileDialogFileSelected"]
 [connection signal="text_submitted" from="TestLineEdit" to="." method="OnTestLineEditSubmitted"]
 [connection signal="pressed" from="TestButton" to="." method="OnTestButtonPressed"]
+[connection signal="pressed" from="TestAllButton" to="." method="OnTestAllButtonPressed"]

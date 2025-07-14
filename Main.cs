@@ -34,6 +34,10 @@ namespace NeuralNet
         Label testLabel;
         [Export]
         Button testButton;
+        [Export]
+        Button testAllButton;
+        [Export]
+        Label numCorrectLabel;
 
         byte[,,] trainingImages;
         byte[] trainingLabels;
@@ -344,23 +348,45 @@ namespace NeuralNet
             DisplayMNISTImage(testIndex, testRect, true);
         }
 
+        private double TestImage(bool display)
+        {
+            double[] outputs = neuralNet.GetOutputs(normTestImages[testIndex]);
+            int predictedNum = -1;
+            double maxProb = 0;
+            for (int i = 0; i < outputs.Length; i++)
+            {
+                if (outputs[i] > maxProb)
+                {
+                    maxProb = outputs[i];
+                    predictedNum = i;
+                }
+            }
+            if(display)
+                testLabel.Text = $"Predicted: {predictedNum} (Prob: {maxProb:F4})\nActual: {testLabels[testIndex]}";
+            return predictedNum;
+        }
+
         private void OnTestButtonPressed()
         {
             if(testIndex != -1)
             {
-                double[] outputs = neuralNet.GetOutputs(normTestImages[testIndex]);
-                int predictedNum = -1;
-                double maxProb = 0;
-                for(int i = 0; i < outputs.Length; i++)
-                {
-                    if (outputs[i] > maxProb)
-                    {
-                        maxProb = outputs[i];
-                        predictedNum = i;
-                    }
-                }
-                testLabel.Text = $"Predicted: {predictedNum} (Prob: {maxProb:F4})\nActual: {testLabels[testIndex]}";
+                TestImage(true);
             }
+        }
+
+        private void OnTestAllButtonPressed()
+        {
+            int numCorrect = 0;
+            for (int i = 0; i < normTestImages.Length; i++)
+            {
+                testIndex = i;
+                double predictedNum = TestImage(false);
+                if (predictedNum == testLabels[i])
+                {
+                    numCorrect++;
+                }
+            }
+            numCorrectLabel.Text = $"Number of correct predictions: {numCorrect}/{normTestImages.Length}";
         }
     }
 }
