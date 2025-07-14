@@ -265,5 +265,81 @@ namespace NeuralNet
                 }
             }
         }
+
+        public void ReadWeights(string filePath, string fileName)
+        {
+            using (StreamReader inputFile = new StreamReader(Path.Combine(filePath, fileName)))
+            {
+                //read layerCount
+                string layerCountStr = inputFile.ReadLine();
+                string[] words = layerCountStr.Split(':');
+                int layerCount = int.Parse(words[1].Trim());
+
+                //read layer sizes
+                string layerSizesStr = inputFile.ReadLine();
+                words = layerSizesStr.Split(',');
+                layerSizes = new int[layerCount];
+                for(int i = 0; i < layerCount; i++)
+                {
+                    layerSizes[i] = int.Parse(words[i].Trim());
+                }
+
+                //construct layers with random weights initially
+                InitialiseLayers();
+
+                //read each layer biases and weights
+                for(int layerNum = 0; layerNum < layerCount; layerNum++)
+                {
+                    //ignore this
+                    string layerComment = inputFile.ReadLine();
+
+                    //biases
+                    string biasesLine = inputFile.ReadLine();
+                    string[] sections = biasesLine.Split(':');
+                    string[] biasesStr = sections[1].Split(',');
+
+                    if (biasesStr[0] == "null")
+                    {
+                        //input layer
+                        layers[layerNum].biases = null;
+                    }
+                    else
+                    {
+                        double[] biases = new double[biasesStr.Length];
+                        for (int i = 0; i < biasesStr.Length; i++)
+                        {
+                            biases[i] = double.Parse(biasesStr[i].Trim());
+                        }
+                        layers[layerNum].biases = biases;
+                    }
+
+                    //weights
+                    for(int weightsNum = 0; weightsNum < layerSizes[layerNum]; weightsNum++)
+                    {
+                        string weightsLine = inputFile.ReadLine();
+                        sections = weightsLine.Split(':');
+                        string[] weightsStr = sections[1].Split(',');
+
+                        if (weightsStr[0] == "null")
+                        {
+                            //input layer
+                            layers[layerNum].weights = null;
+                        }
+                        else
+                        {
+                            double[] weights = new double[weightsStr.Length];
+                            for (int i = 0; i < weightsStr.Length; i++)
+                            {
+                                weights[i] = double.Parse(weightsStr[i].Trim());
+                            }
+                            for (int j = 0; j < weights.Length; j++)
+                            {
+                                layers[layerNum].weights[weightsNum, j] = weights[j];
+                            }
+                        }
+                    }
+                }
+            }
+        }
 	}
 }
