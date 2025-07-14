@@ -57,7 +57,7 @@ namespace NeuralNet
         int currentIteration = 0;
         int maxIterations = 10;
         int taskIterSize = 100;
-        int numTrainImagesToEncode = 100;
+        int numTrainImagesToEncode = 1000;
         int numTestImagesToEncode = 10000;
         double learningRate = 0.1;
 
