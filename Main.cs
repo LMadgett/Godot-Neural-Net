@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.IO;
 using System.Collections;
 using System.Threading;
 
@@ -34,6 +35,15 @@ namespace NeuralNet
         int numImagesToEncode = 10;
         double learningRate = 0.1;
 
+        [Export]
+        string writeFilePath = "E:\\Coding\\Godot\\neuralnet";
+        [Export]
+        string writeFileName = "weights.txt";
+        [Export]
+        string readFilePath = "E:\\Coding\\Godot\\neuralnet";
+        [Export]
+        string readFileName = "weights.txt";
+
         private Hashtable mnistTextures = new Hashtable();
 
         // Called when the node enters the scene tree for the first time.
@@ -41,6 +51,26 @@ namespace NeuralNet
         {
             ReadData();
             InitialiseNeuralNet();
+            ReadWeights();
+        }
+
+        public void ReadWeights()
+        {
+            if (readFileName != null && readFileName.Length > 0)
+            {
+                neuralNet.ReadWeights(readFilePath, readFileName);
+                GD.Print("Weights read from " + readFileName);
+            }
+        }
+
+        public void SaveWeights()
+        {
+            if (writeFileName != null && writeFileName.Length > 0)
+            {
+                neuralNet.SaveWeights(writeFilePath, writeFileName);
+                weightsSaved = true;
+                GD.Print("Weights saved to " + writeFileName);
+            }
         }
 
         private void ReadData()
@@ -199,9 +229,7 @@ namespace NeuralNet
 
             if(trained && !weightsSaved)
             {
-                neuralNet.SaveWeights("E:\\Coding\\Godot\\neuralnet", "neural_net_weights.txt");
-                weightsSaved = true;
-                GD.Print("Weights saved to neural_net_weights.txt");
+                SaveWeights();
             }
         }
     }

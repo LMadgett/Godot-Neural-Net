@@ -298,7 +298,7 @@ namespace NeuralNet
                     string[] sections = biasesLine.Split(':');
                     string[] biasesStr = sections[1].Split(',');
 
-                    if (biasesStr[0] == "null")
+                    if (biasesStr[0].Trim().Equals("null"))
                     {
                         //input layer
                         layers[layerNum].biases = null;
@@ -320,10 +320,11 @@ namespace NeuralNet
                         sections = weightsLine.Split(':');
                         string[] weightsStr = sections[1].Split(',');
 
-                        if (weightsStr[0] == "null")
+                        if (weightsStr[0].Trim().Equals("null"))
                         {
                             //input layer
                             layers[layerNum].weights = null;
+                            break;
                         }
                         else
                         {
