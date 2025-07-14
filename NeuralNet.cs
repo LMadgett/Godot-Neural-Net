@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.IO;
 using System.Collections.Generic;
 
 namespace NeuralNet
@@ -203,6 +204,66 @@ namespace NeuralNet
         public double PassThroughActivationFunction(double value)
         {
             return value;
+        }
+
+        public void SaveWeights(string filePath, string fileName)
+        {
+            using (StreamWriter outputFile = new StreamWriter(Path.Combine(filePath, fileName)))
+            {
+                outputFile.WriteLine("LayerCount: " + layers.Count);
+                for(int i = 0; i < layers.Count; i++)
+                {
+                    outputFile.Write(layerSizes[i]);
+                    if(i < layers.Count - 1)
+                    {
+                        outputFile.Write(",");
+                    }
+                    else
+                    {
+                        outputFile.Write("\n");
+                    }
+                }
+                foreach(Layer layer in layers)
+                {
+                    int layerIdx = layers.IndexOf(layer);
+                    double[] biases = layer.biases;
+                    double[,] weights = layer.weights; //[layerSize, prevLayerSize]
+                    outputFile.WriteLine("Layer[" + layerIdx + "]" + ":Size=" + layerSizes[layerIdx]);
+
+                    if (biases == null)
+                    {
+                        outputFile.WriteLine("Biases: null");
+                    }
+                    else
+                    {
+                        outputFile.WriteLine("Biases: " + string.Join(",", biases));
+                    }
+
+                    if(weights == null)
+                    {
+                        outputFile.WriteLine("Weights: null");
+                    }
+                    else
+                    {
+                        for(int i = 0; i < weights.GetLength(0); i++)
+                        {
+                            outputFile.Write("Weights[" + i + "]: ");
+                            for(int j = 0; j < weights.GetLength(1); j++)
+                            {
+                                outputFile.Write(weights[i, j]);
+                                if(j < weights.GetLength(1) - 1)
+                                {
+                                    outputFile.Write(",");
+                                }
+                                else
+                                {
+                                    outputFile.Write("\n");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 	}
 }

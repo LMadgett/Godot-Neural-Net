@@ -26,10 +26,12 @@ namespace NeuralNet
         private bool training = false;
         private Thread trainThread;
 
+        private bool weightsSaved = false;
+
         int currentIteration = 0;
         int maxIterations = 10;
         int taskIterSize = 100;
-        int numImagesToEncode = 100;
+        int numImagesToEncode = 10;
         double learningRate = 0.1;
 
         private Hashtable mnistTextures = new Hashtable();
@@ -154,15 +156,6 @@ namespace NeuralNet
             return normImages;
         }
 
-        // Called every frame. 'delta' is the elapsed time since the previous frame.
-        public override void _Process(double delta)
-        {
-            if(!trained)
-            {
-                TrainNeuralNet();
-            }
-        }
-
         private void ReadMNISTTrainingData()
         {
             trainingImages = (byte[,,])IDXReader.ReadIDX("MNIST/train-images.idx3-ubyte");
@@ -194,6 +187,22 @@ namespace NeuralNet
             }
 
             return img;
+        }
+
+        // Called every frame. 'delta' is the elapsed time since the previous frame.
+        public override void _Process(double delta)
+        {
+            if (!trained)
+            {
+                TrainNeuralNet();
+            }
+
+            if(trained && !weightsSaved)
+            {
+                neuralNet.SaveWeights("E:\\Coding\\Godot\\neuralnet", "neural_net_weights.txt");
+                weightsSaved = true;
+                GD.Print("Weights saved to neural_net_weights.txt");
+            }
         }
     }
 }

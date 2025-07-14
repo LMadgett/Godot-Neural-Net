@@ -23,13 +23,21 @@ namespace NeuralNet
             this.activationFunction = activation;
 
             outputs = new double[layerSize];
-            biases = new double[layerSize];
-            weights = new double[layerSize, prevLayerSize];
 
-            InitialiseNeurons();
+            if (prevLayerSize == 0) //is input layer?
+            {
+                biases = null;
+                weights = null;
+            }
+            else
+            {
+                biases = new double[layerSize];
+                weights = new double[layerSize, prevLayerSize];
+                InitialiseNeuronsToRandom();
+            }
         }
 
-        private void InitialiseNeurons()
+        private void InitialiseNeuronsToRandom()
         {
             for (int i = 0; i < layerSize; i++)
             {
