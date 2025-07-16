@@ -38,6 +38,8 @@ namespace NeuralNet
         Button testAllButton;
         [Export]
         Label numCorrectLabel;
+        [Export]
+        Label incorrectLabel;
 
         byte[,,] trainingImages;
         byte[] trainingLabels;
@@ -384,6 +386,10 @@ namespace NeuralNet
                 if (predictedNum == testLabels[i])
                 {
                     numCorrect++;
+                }
+                else
+                {
+                    incorrectLabel.Text += $"Incorrect index {i}: Predicted {predictedNum}, Actual {testLabels[i]}\n";
                 }
             }
             numCorrectLabel.Text = $"Number of correct predictions: {numCorrect}/{normTestImages.Length}";

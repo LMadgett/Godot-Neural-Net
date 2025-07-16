@@ -6,7 +6,7 @@
 [sub_resource type="LabelSettings" id="LabelSettings_0wfyh"]
 font_size = 20
 
-[node name="Main" type="Node2D" node_paths=PackedStringArray("neuralNet", "trainRect", "maxErrorRect", "progressLabel", "trainButton", "saveWeightsButton", "readWeightsButton", "fileDialog", "fileLineEdit", "testRect", "TestLineEdit", "testLabel", "testButton", "testAllButton", "numCorrectLabel")]
+[node name="Main" type="Node2D" node_paths=PackedStringArray("neuralNet", "trainRect", "maxErrorRect", "progressLabel", "trainButton", "saveWeightsButton", "readWeightsButton", "fileDialog", "fileLineEdit", "testRect", "TestLineEdit", "testLabel", "testButton", "testAllButton", "numCorrectLabel", "incorrectLabel")]
 script = ExtResource("1_0wfyh")
 neuralNet = NodePath("NeuralNet")
 trainRect = NodePath("trainRect")
@@ -23,6 +23,7 @@ testLabel = NodePath("TestLabel")
 testButton = NodePath("TestButton")
 testAllButton = NodePath("TestAllButton")
 numCorrectLabel = NodePath("NumCorrectLabel")
+incorrectLabel = NodePath("ScrollContainer/IncorrectLabel")
 
 [node name="NeuralNet" parent="." instance=ExtResource("1_o5qli")]
 
@@ -122,6 +123,15 @@ offset_left = 758.0
 offset_top = 230.0
 offset_right = 798.0
 offset_bottom = 253.0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+offset_left = 758.0
+offset_top = 270.0
+offset_right = 1108.0
+offset_bottom = 526.0
+
+[node name="IncorrectLabel" type="Label" parent="ScrollContainer"]
+layout_mode = 2
 
 [connection signal="pressed" from="LoadButton" to="." method="OnLoadButtonPressed"]
 [connection signal="pressed" from="SaveButton" to="." method="OnSaveButtonPressed"]
